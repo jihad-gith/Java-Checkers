@@ -727,7 +727,7 @@ private JPanel createHeaderPanel() {
                                 // Couronne pour les dames
                                 g2.setColor(piece.estBlanc() ? DARK_GOLD : LIGHT_GOLD);
                                 g2.setFont(new Font("Arial", Font.BOLD, 16));
-                                g2.drawString("★", px + d/2 - 8, py + d/2 + 6);
+                                g2.drawString("D", px + d/2 - 8, py + d/2 + 6);
                             }
                         }
                     }
