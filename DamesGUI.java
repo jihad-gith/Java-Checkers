@@ -72,79 +72,27 @@ public class DamesGUI extends JFrame {
 
         setContentPane(mainPanel);
     }
-    // Création d'un petit bouton avec icône depuis fichier local
-private JButton  createImageIconButton(String iconPath, String tooltip) {
-    JButton button = new JButton();
-    button.setPreferredSize(new Dimension(50, 50));
-    button.setFocusPainted(false);
-    button.setBorderPainted(false);
-    button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    button.setToolTipText(tooltip);
-    
-    try {
-        File imageFile = new File(iconPath);
-        if (imageFile.exists()) {
-            BufferedImage originalImage = ImageIO.read(imageFile);
-            Image scaledImage = originalImage.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-            ImageIcon icon = new ImageIcon(scaledImage);
-            button.setIcon(icon);
-            
-            // Couleur de fond basée sur les tons de l'image
-            // Utilisation de couleurs neutres qui s'harmonisent mieux
-            button.setBackground(new Color(101, 67, 33));// Beige très clair
-            button.setContentAreaFilled(true);
-            button.setOpaque(true);
-            
-            // Effets de survol harmonieux
-            button.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                  button.setBackground(new Color(160, 82, 45)); // Plus clair au survol
-                }
 
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    button.setBackground(new Color(139, 69, 19));// Retour à la normale
-                }
-            });
-            
-        } else {
-            // Fallback si l'image n'existe pas
-            button.setText("🏠");
-            button.setBackground(DARK_GOLD);
-            button.setForeground(Color.WHITE);
-            button.setFont(new Font("Arial", Font.BOLD, 16));
-            System.out.println("Fichier image non trouvé : " + iconPath);
-        }
-    } catch (IOException e) {
-        button.setText("🏠");
-        button.setBackground(DARK_GOLD);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, 16));
-        System.out.println("Erreur lors du chargement de l'image : " + e.getMessage());
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        
+        // Titre Master Checkers (plus petit que sur la page d'accueil)
+        JLabel titleLabel = createGoldLabel("MASTER CHECKERS", 32);
+        headerPanel.add(titleLabel, BorderLayout.CENTER);
+        
+        // Bouton retour dans le coin gauche avec image locale
+        btnRetourAccueil = createImageIconButton("Java-Checkers\\image.png", "Accueil");
+        btnRetourAccueil.addActionListener(e -> retourAccueil());
+        headerPanel.add(btnRetourAccueil, BorderLayout.WEST);
+        
+        // Score dans le coin droit
+        scoreLabel = createGoldLabel("Blancs: 12 | Noirs: 12", 16);
+        headerPanel.add(scoreLabel, BorderLayout.EAST);
+        
+        return headerPanel;
     }
-    
-    return button;
-}
-  
-private JPanel createHeaderPanel() {
-    JPanel headerPanel = new JPanel(new BorderLayout());
-    headerPanel.setOpaque(false);
-    headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
-    
-    // Titre Master Checkers (plus petit que sur la page d'accueil)
-    JLabel titleLabel = createGoldLabel("MASTER CHECKERS", 32);
-    headerPanel.add(titleLabel, BorderLayout.CENTER);
-    
-    // Bouton retour dans le coin gauche avec image locale
-    btnRetourAccueil =  createImageIconButton("Java-Checkers\\image.png", "Accueil");
-    btnRetourAccueil.addActionListener(e -> retourAccueil());
-    headerPanel.add(btnRetourAccueil, BorderLayout.WEST);
-    
-    // Score dans le coin droit
-    scoreLabel = createGoldLabel("Blancs: 12 | Noirs: 12", 16);
-    headerPanel.add(scoreLabel, BorderLayout.EAST);
-    
-    return headerPanel;
-}
     
     private JPanel createCenterPanel() {
         JPanel centerPanel = new JPanel(new BorderLayout());
@@ -170,36 +118,36 @@ private JPanel createHeaderPanel() {
     }
     
     private JPanel createHistoriquePanel() {
-    JPanel historiqueContainer = new JPanel(new BorderLayout());
-    historiqueContainer.setOpaque(false);
-    historiqueContainer.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
-    historiqueContainer.setPreferredSize(new Dimension(250, 0));
-    
-    // Titre avec style doré
-    JLabel historiqueTitle = createGoldLabel("HISTORIQUE", 18);
-    historiqueTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
-    historiqueContainer.add(historiqueTitle, BorderLayout.NORTH);
-    
-    // Zone de texte avec fond simple et propre
-    historiqueTextArea = new JTextArea(15, 20);
-    historiqueTextArea.setEditable(false);
-    historiqueTextArea.setLineWrap(true);
-    historiqueTextArea.setWrapStyleWord(true);
-    historiqueTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-    historiqueTextArea.setBackground(new Color(245, 245, 220)); // Beige clair
-    historiqueTextArea.setForeground(new Color(101, 67, 33)); // Marron foncé
-    historiqueTextArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    
-    JScrollPane scrollPane = new JScrollPane(historiqueTextArea);
-    scrollPane.setBorder(new GoldBorder());
-    scrollPane.setBackground(new Color(245, 245, 220));
-    scrollPane.getViewport().setBackground(new Color(245, 245, 220));
-    scrollPane.getViewport().setOpaque(true);
-    
-    historiqueContainer.add(scrollPane, BorderLayout.CENTER);
-    
-    return historiqueContainer;
-}
+        JPanel historiqueContainer = new JPanel(new BorderLayout());
+        historiqueContainer.setOpaque(false);
+        historiqueContainer.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
+        historiqueContainer.setPreferredSize(new Dimension(250, 0));
+        
+        // Titre avec style doré
+        JLabel historiqueTitle = createGoldLabel("HISTORIQUE", 18);
+        historiqueTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        historiqueContainer.add(historiqueTitle, BorderLayout.NORTH);
+        
+        // Zone de texte avec fond simple et propre
+        historiqueTextArea = new JTextArea(15, 20);
+        historiqueTextArea.setEditable(false);
+        historiqueTextArea.setLineWrap(true);
+        historiqueTextArea.setWrapStyleWord(true);
+        historiqueTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        historiqueTextArea.setBackground(new Color(245, 245, 220)); // Beige clair
+        historiqueTextArea.setForeground(new Color(101, 67, 33)); // Marron foncé
+        historiqueTextArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JScrollPane scrollPane = new JScrollPane(historiqueTextArea);
+        scrollPane.setBorder(new GoldBorder());
+        scrollPane.setBackground(new Color(245, 245, 220));
+        scrollPane.getViewport().setBackground(new Color(245, 245, 220));
+        scrollPane.getViewport().setOpaque(true);
+        
+        historiqueContainer.add(scrollPane, BorderLayout.CENTER);
+        
+        return historiqueContainer;
+    }
 
     private JPanel createBottomPanel() {
         JPanel bottomPanel = new JPanel();
@@ -223,7 +171,6 @@ private JPanel createHeaderPanel() {
         btnRegles.addActionListener(e -> afficherRegles());
         
         btnRefaire = createGoldButton("NOUVELLE PARTIE");
-        
         btnRefaire.setPreferredSize(new Dimension(180, 50));
         btnRefaire.setVisible(false);
         btnRefaire.addActionListener(e -> nouvellePartie());
@@ -236,197 +183,50 @@ private JPanel createHeaderPanel() {
         return bottomPanel;
     }
     
-    // Classe pour gérer le fond avec image (identique à AccueilGUI)
-    private class BackgroundPanel extends JPanel {
-        private Image backgroundImage;
-        private Color backgroundColor;
-        
-        public BackgroundPanel(String imageUrl, Color fallbackColor) {
-            try {
-                ImageIcon icon = new ImageIcon(new URL(imageUrl));
-                if (icon.getImageLoadStatus() == MediaTracker.COMPLETE) {
-                    backgroundImage = icon.getImage();
-                } else {
-                    throw new IOException("Chargement d'image incomplet");
-                }
-            } catch (Exception e) {
-                try {
-                    InputStream is = getClass().getResourceAsStream(imageUrl);
-                    if (is != null) {
-                        backgroundImage = ImageIO.read(is);
-                    }
-                } catch (Exception ex) {
-                    backgroundImage = null;
-                }
-            }
-            this.backgroundColor = fallbackColor;
-            setOpaque(false);
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            if (backgroundImage != null) {
-                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-            } else {
-                g.setColor(backgroundColor);
-                g.fillRect(0, 0, getWidth(), getHeight());
-            }
-        }
-    }
-    
-    // Bordure dorée avec effet 3D (identique à AccueilGUI)
-    private class GoldBorder implements Border {
-        @Override
-        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-            Graphics2D g2d = (Graphics2D) g.create();
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
-            // Ombre
-            g2d.setColor(new Color(0, 0, 0, 100));
-            g2d.setStroke(new BasicStroke(6));
-            g2d.drawRect(x + 3, y + 3, width - 6, height - 6);
-            
-            // Bordure dorée
-            g2d.setColor(DARK_GOLD);
-            g2d.setStroke(new BasicStroke(4));
-            g2d.drawRect(x, y, width - 1, height - 1);
-            
-            // Reflet
-            g2d.setColor(LIGHT_GOLD);
-            g2d.setStroke(new BasicStroke(2));
-            g2d.drawRect(x + 2, y + 2, width - 5, height - 5);
-            
-            g2d.dispose();
-        }
-        
-        @Override
-        public Insets getBorderInsets(Component c) {
-            return new Insets(8, 8, 8, 8);
-        }
-        
-        @Override
-        public boolean isBorderOpaque() {
-            return false;
-        }
-    }
-    
-    // Création d'un label avec effet doré (identique à AccueilGUI)
-    private JLabel createGoldLabel(String text, int fontSize) {
-        JLabel label = new JLabel(text, SwingConstants.CENTER) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                
-                GradientPaint gp = new GradientPaint(
-                    0, 0, LIGHT_GOLD,
-                    0, getHeight(), DARK_GOLD
-                );
-                g2d.setPaint(gp);
-                
-                FontMetrics fm = g2d.getFontMetrics();
-                int textWidth = fm.stringWidth(getText());
-                int textHeight = fm.getHeight();
-                int x = (getWidth() - textWidth) / 2;
-                int y = ((getHeight() - textHeight) / 2) + fm.getAscent();
-                
-                g2d.drawString(getText(), x, y);
-                
-                float alpha = 0.4f;
-                for (int i = 1; i < 4; i++) {
-                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
-                    g2d.drawString(getText(), x - i, y - i);
-                    alpha -= 0.1f;
-                }
-                
-                g2d.dispose();
-            }
-        };
-        
-        label.setForeground(GOLD_COLOR);
-        label.setFont(new Font("Arial", Font.BOLD, fontSize));
-        return label;
-    }
-    
-    // Création d'un bouton doré (identique à AccueilGUI)
-    private JButton createGoldButton(String text) {
-        JButton button = new JButton(text) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                RoundRectangle2D roundedRectangle = new RoundRectangle2D.Float(
-                    0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-                
-                GradientPaint gp = new GradientPaint(
-                    0, 0, LIGHT_GOLD,
-                    0, getHeight(), DARK_GOLD
-                );
-                g2d.setPaint(gp);
-                g2d.fill(roundedRectangle);
-                
-                g2d.setColor(DARK_GOLD.darker());
-                g2d.draw(roundedRectangle);
-                
-                FontMetrics fm = g2d.getFontMetrics();
-                int textWidth = fm.stringWidth(getText());
-                int textHeight = fm.getHeight();
-                int x = (getWidth() - textWidth) / 2;
-                int y = ((getHeight() - textHeight) / 2) + fm.getAscent();
-                
-                g2d.setColor(new Color(0, 0, 0, 80));
-                g2d.drawString(getText(), x + 1, y + 1);
-                
-                g2d.setColor(Color.BLACK);
-                g2d.drawString(getText(), x, y);
-                
-                if (!getModel().isPressed()) {
-                    g2d.setColor(new Color(255, 255, 255, 100));
-                    g2d.drawLine(5, 5, getWidth() - 5, 5);
-                    g2d.drawLine(5, 5, 5, getHeight() - 5);
-                }
-                
-                g2d.dispose();
-            }
-        };
-        
-        button.setFont(new Font("Arial", Font.BOLD, 16));
-        button.setForeground(Color.BLACK);
-        button.setBackground(GOLD_COLOR);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setContentAreaFilled(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        
-        return button;
-    }
-    
-    // Création d'un petit bouton (identique à AccueilGUI)
-    private JButton createSmallIconButton(String icon, String tooltip) {
-        JButton button = new JButton(icon);
+    // Création d'un petit bouton avec icône depuis fichier local
+    private JButton createImageIconButton(String iconPath, String tooltip) {
+        JButton button = new JButton();
         button.setPreferredSize(new Dimension(50, 50));
-        button.setBackground(DARK_GOLD);
-        button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setToolTipText(tooltip);
-        button.setFont(new Font("Arial", Font.BOLD, 16));
         
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(LIGHT_GOLD);
-                button.setForeground(Color.BLACK);
-            }
+        try {
+            File imageFile = new File(iconPath);
+            if (imageFile.exists()) {
+                BufferedImage originalImage = ImageIO.read(imageFile);
+                Image scaledImage = originalImage.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+                ImageIcon icon = new ImageIcon(scaledImage);
+                button.setIcon(icon);
+                
+                button.setBackground(new Color(101, 67, 33));
+                button.setContentAreaFilled(true);
+                button.setOpaque(true);
+                
+                button.addMouseListener(new java.awt.event.MouseAdapter() {
+                    public void mouseEntered(java.awt.event.MouseEvent evt) {
+                        button.setBackground(new Color(160, 82, 45));
+                    }
 
-            public void mouseExited(java.awt.event.MouseEvent evt) {
+                    public void mouseExited(java.awt.event.MouseEvent evt) {
+                        button.setBackground(new Color(139, 69, 19));
+                    }
+                });
+            } else {
+                button.setText("🏠");
                 button.setBackground(DARK_GOLD);
                 button.setForeground(Color.WHITE);
+                button.setFont(new Font("Arial", Font.BOLD, 16));
+                System.out.println("Fichier image non trouvé : " + iconPath);
             }
-        });
+        } catch (IOException e) {
+            button.setText("🏠");
+            button.setBackground(DARK_GOLD);
+            button.setForeground(Color.WHITE);
+            button.setFont(new Font("Arial", Font.BOLD, 16));
+            System.out.println("Erreur lors du chargement de l'image : " + e.getMessage());
+        }
         
         return button;
     }
@@ -448,7 +248,6 @@ private JPanel createHeaderPanel() {
         JDialog reglesDialog = new JDialog(this, "Règles du Master Checkers", true);
         reglesDialog.setLayout(new BorderLayout());
         
-        // Fond avec le même style
         BackgroundPanel dialogPanel = new BackgroundPanel(
             "https://i.pinimg.com/736x/61/38/22/6138225ae47e1549bcb77b075efe0f63.jpg", 
             DARK_WOOD
@@ -535,17 +334,14 @@ private JPanel createHeaderPanel() {
     }
 
     private class PlateauPanel extends JPanel {
-        private static final int TAILLE_CASE = 60; // Légèrement plus grand
+        private static final int TAILLE_CASE = 60;
+        private static final Color CASE_CLAIRE = new Color(255, 248, 220);
+        private static final Color CASE_FONCEE = new Color(210, 180, 140);
+        private static final Color PIECE_BLANCHE = LIGHT_GOLD;
+        private static final Color PIECE_NOIRE = new Color(101, 67, 33);
+        private static final Color SELECTION = new Color(255, 215, 0, 200);
+        private static final Color COUP_POSSIBLE = new Color(50, 205, 50, 150);
         
-        // Couleurs dorées pour le plateau
-        private static final Color CASE_CLAIRE = new Color(255, 248, 220);    // Cornsilk
-        private static final Color CASE_FONCEE = new Color(210, 180, 140);    // Tan
-        private static final Color PIECE_BLANCHE = LIGHT_GOLD;                // Or clair
-        private static final Color PIECE_NOIRE = new Color(101, 67, 33);      // Marron foncé
-        private static final Color SELECTION = new Color(255, 215, 0, 200);   // Or avec transparence
-        private static final Color COUP_POSSIBLE = new Color(50, 205, 50, 150); // Vert semi-transparent
-        
-        // Images pour le plateau et les pièces (identique au code original)
         private BufferedImage imageComplete;
         private BufferedImage caseBlanc;
         private BufferedImage caseNoir;
@@ -618,15 +414,21 @@ private JPanel createHeaderPanel() {
                 if (positionSelectionnee == null) {
                     if (piece != null && !piece.estVide() &&
                             ((jeu.estTourBlanc() && piece.estBlanc()) || (!jeu.estTourBlanc() && piece.estNoir()))) {
+                        
+                        List<Mouvement> mouvementsPossibles;
                         if (jeu.estPrisesEnChaineEnCours()) {
                             if (pos.equals(jeu.getPositionDernierePrise())) {
                                 positionSelectionnee = pos;
-                                repaint();
                             }
                         } else {
-                            positionSelectionnee = pos;
-                            repaint();
+                            mouvementsPossibles = jeu.getPlateau().getMouvementsPossibles(jeu.estTourBlanc());
+                            mouvementsPossibles.removeIf(m -> !m.getDebut().equals(pos));
+                            
+                            if (!mouvementsPossibles.isEmpty()) {
+                                positionSelectionnee = pos;
+                            }
                         }
+                        repaint();
                     }
                 } else {
                     if (!positionSelectionnee.equals(pos)) {
@@ -659,7 +461,6 @@ private JPanel createHeaderPanel() {
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            // Fond du plateau avec gradient doré
             GradientPaint plateauGradient = new GradientPaint(
                 0, 0, LIGHT_GOLD,
                 getWidth(), getHeight(), DARK_GOLD
@@ -678,17 +479,14 @@ private JPanel createHeaderPanel() {
                             x, y, TAILLE_CASE, TAILLE_CASE, null
                         );
                     } else {
-                        // Cases avec style doré
                         g2.setColor((i + j) % 2 == 0 ? CASE_CLAIRE : CASE_FONCEE);
                         g2.fillRect(x, y, TAILLE_CASE, TAILLE_CASE);
                         
-                        // Bordure subtile pour chaque case
                         g2.setColor(DARK_GOLD);
                         g2.setStroke(new BasicStroke(1));
                         g2.drawRect(x, y, TAILLE_CASE, TAILLE_CASE);
                     }
 
-                    // Dessiner les pièces avec style doré
                     Piece piece = jeu.getPlateau().getPiece(new Position(i, j));
                     if (piece != null && !piece.estVide()) {
                         if (useImages) {
@@ -700,31 +498,24 @@ private JPanel createHeaderPanel() {
                             }
                             g2.drawImage(pieceImage, x, y, TAILLE_CASE, TAILLE_CASE, null);
                         } else {
-                            // Pièces avec style doré et effet 3D
                             int d = (int)(TAILLE_CASE * 0.75);
                             int px = x + (TAILLE_CASE - d) / 2;
                             int py = y + (TAILLE_CASE - d) / 2;
                             
-                            // Ombre
-                                                       // Ombre
                             g2.setColor(new Color(0, 0, 0, 100));
                             g2.fillOval(px + 2, py + 2, d, d);
                             
-                            // Pièce principale
                             g2.setColor(piece.estBlanc() ? PIECE_BLANCHE : PIECE_NOIRE);
                             g2.fillOval(px, py, d, d);
                             
-                            // Bordure
                             g2.setColor(piece.estBlanc() ? DARK_GOLD : Color.BLACK);
                             g2.setStroke(new BasicStroke(2));
                             g2.drawOval(px, py, d, d);
                             
-                            // Reflet
                             g2.setColor(new Color(255, 255, 255, 80));
                             g2.fillOval(px + d/4, py + d/4, d/3, d/3);
 
                             if (piece.estDame()) {
-                                // Couronne pour les dames
                                 g2.setColor(piece.estBlanc() ? DARK_GOLD : LIGHT_GOLD);
                                 g2.setFont(new Font("Arial", Font.BOLD, 16));
                                 g2.drawString("D", px + d/2 - 8, py + d/2 + 6);
@@ -739,7 +530,6 @@ private JPanel createHeaderPanel() {
                 int x = positionSelectionnee.getColonne() * TAILLE_CASE;
                 int y = positionSelectionnee.getLigne() * TAILLE_CASE;
 
-                // Effet de sélection doré
                 g2.setColor(SELECTION);
                 g2.fillRect(x, y, TAILLE_CASE, TAILLE_CASE);
 
@@ -751,26 +541,27 @@ private JPanel createHeaderPanel() {
                     mouvements.removeIf(m -> !m.getDebut().equals(positionSelectionnee));
                 }
 
-                // Cases de destination possibles
                 for (Mouvement m : mouvements) {
                     Position fin = m.getFin();
                     int xf = fin.getColonne() * TAILLE_CASE;
                     int yf = fin.getLigne() * TAILLE_CASE;
                     g2.setColor(COUP_POSSIBLE);
                     g2.fillRect(xf, yf, TAILLE_CASE, TAILLE_CASE);
+                    
+                    g2.setColor(Color.GREEN.darker());
+                    g2.setStroke(new BasicStroke(2));
+                    g2.drawRect(xf, yf, TAILLE_CASE, TAILLE_CASE);
                 }
             }
             
-            // Ajout des coordonnées du plateau avec style doré
+            // Ajout des coordonnées du plateau
             g2.setFont(new Font("Arial", Font.BOLD, 12));
             for (int i = 0; i < 8; i++) {
-                // Lettres en bas (A-H)
                 g2.setColor(i % 2 == 0 ? CASE_FONCEE : CASE_CLAIRE);
                 g2.drawString(String.valueOf((char)('A' + i)), 
                              i * TAILLE_CASE + TAILLE_CASE/2 - 5, 
                              8 * TAILLE_CASE - 5);
                 
-                // Chiffres à gauche (1-8)
                 g2.drawString(String.valueOf(8 - i), 
                              5, 
                              i * TAILLE_CASE + TAILLE_CASE/2 + 5);
@@ -778,8 +569,172 @@ private JPanel createHeaderPanel() {
         }
     }
 
+    // Classe pour gérer le fond avec image
+    private class BackgroundPanel extends JPanel {
+        private Image backgroundImage;
+        private Color backgroundColor;
+        
+        public BackgroundPanel(String imageUrl, Color fallbackColor) {
+            try {
+                ImageIcon icon = new ImageIcon(new URL(imageUrl));
+                if (icon.getImageLoadStatus() == MediaTracker.COMPLETE) {
+                    backgroundImage = icon.getImage();
+                } else {
+                    throw new IOException("Chargement d'image incomplet");
+                }
+            } catch (Exception e) {
+                try {
+                    InputStream is = getClass().getResourceAsStream(imageUrl);
+                    if (is != null) {
+                        backgroundImage = ImageIO.read(is);
+                    }
+                } catch (Exception ex) {
+                    backgroundImage = null;
+                }
+            }
+            this.backgroundColor = fallbackColor;
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (backgroundImage != null) {
+                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            } else {
+                g.setColor(backgroundColor);
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        }
+    }
+    
+    // Bordure dorée avec effet 3D
+    private class GoldBorder implements Border {
+        @Override
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            g2d.setColor(new Color(0, 0, 0, 100));
+            g2d.setStroke(new BasicStroke(6));
+            g2d.drawRect(x + 3, y + 3, width - 6, height - 6);
+            
+            g2d.setColor(DARK_GOLD);
+            g2d.setStroke(new BasicStroke(4));
+            g2d.drawRect(x, y, width - 1, height - 1);
+            
+            g2d.setColor(LIGHT_GOLD);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawRect(x + 2, y + 2, width - 5, height - 5);
+            
+            g2d.dispose();
+        }
+        
+        @Override
+        public Insets getBorderInsets(Component c) {
+            return new Insets(8, 8, 8, 8);
+        }
+        
+        @Override
+        public boolean isBorderOpaque() {
+            return false;
+        }
+    }
+    
+    // Création d'un label avec effet doré
+    private JLabel createGoldLabel(String text, int fontSize) {
+        JLabel label = new JLabel(text, SwingConstants.CENTER) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                
+                GradientPaint gp = new GradientPaint(
+                    0, 0, LIGHT_GOLD,
+                    0, getHeight(), DARK_GOLD
+                );
+                g2d.setPaint(gp);
+                
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth(getText());
+                int textHeight = fm.getHeight();
+                int x = (getWidth() - textWidth) / 2;
+                int y = ((getHeight() - textHeight) / 2) + fm.getAscent();
+                
+                g2d.drawString(getText(), x, y);
+                
+                float alpha = 0.4f;
+                for (int i = 1; i < 4; i++) {
+                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+                    g2d.drawString(getText(), x - i, y - i);
+                    alpha -= 0.1f;
+                }
+                
+                g2d.dispose();
+            }
+        };
+        
+        label.setForeground(GOLD_COLOR);
+        label.setFont(new Font("Arial", Font.BOLD, fontSize));
+        return label;
+    }
+    
+    // Création d'un bouton doré
+    private JButton createGoldButton(String text) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                RoundRectangle2D roundedRectangle = new RoundRectangle2D.Float(
+                    0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                
+                GradientPaint gp = new GradientPaint(
+                    0, 0, LIGHT_GOLD,
+                    0, getHeight(), DARK_GOLD
+                );
+                g2d.setPaint(gp);
+                g2d.fill(roundedRectangle);
+                
+                g2d.setColor(DARK_GOLD.darker());
+                g2d.draw(roundedRectangle);
+                
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth(getText());
+                int textHeight = fm.getHeight();
+                int x = (getWidth() - textWidth) / 2;
+                int y = ((getHeight() - textHeight) / 2) + fm.getAscent();
+                
+                g2d.setColor(new Color(0, 0, 0, 80));
+                g2d.drawString(getText(), x + 1, y + 1);
+                
+                g2d.setColor(Color.BLACK);
+                g2d.drawString(getText(), x, y);
+                
+                if (!getModel().isPressed()) {
+                    g2d.setColor(new Color(255, 255, 255, 100));
+                    g2d.drawLine(5, 5, getWidth() - 5, 5);
+                    g2d.drawLine(5, 5, 5, getHeight() - 5);
+                }
+                
+                g2d.dispose();
+            }
+        };
+        
+        button.setFont(new Font("Arial", Font.BOLD, 16));
+        button.setForeground(Color.BLACK);
+        button.setBackground(GOLD_COLOR);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
+        return button;
+    }
+
     public static void main(String[] args) {
-        // Pour une meilleure qualité d'affichage
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
         
@@ -788,4 +743,4 @@ private JPanel createHeaderPanel() {
             damesGUI.setVisible(true);
         });
     }
-}
+} 
