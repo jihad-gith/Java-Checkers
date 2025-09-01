@@ -1,14 +1,17 @@
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.List;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import javax.imageio.ImageIO;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.border.Border;
 
 public class DamesGUI extends JFrame {
     private Jeu jeu;
@@ -18,174 +21,250 @@ public class DamesGUI extends JFrame {
     private JLabel scoreLabel;
     private Position positionSelectionnee;
     private JButton btnRefaire;
-    // private JButton btnAnnuler;
     private JButton btnRegles;
+    private JButton btnRetourAccueil;
 
-    // Nouvelles couleurs pour un meilleur contraste
-    private static final Color BACKGROUND_COLOR = new Color(240, 240, 240);
-    private static final Color PANEL_COLOR = new Color(250, 250, 250);
-    private static final Color ACCENT_COLOR = new Color(70, 130, 180);  // Bleu acier
-    private static final Color TEXT_COLOR = new Color(50, 50, 50);      // Gris foncé
+    // Couleurs Master Checkers (identiques à AccueilGUI)
+    private static final Color GOLD_COLOR = new Color(255, 215, 0);
+    private static final Color DARK_WOOD = new Color(60, 30, 10);
+    private static final Color LIGHT_GOLD = new Color(255, 223, 128);
+    private static final Color DARK_GOLD = new Color(190, 150, 20);
+    
+    // Image de fond
+    private BackgroundPanel mainPanel;
     
     public DamesGUI() {
         jeu = new Jeu();
-
-        setTitle("Jeu de Dames");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
-        getContentPane().setBackground(BACKGROUND_COLOR);
-
-        // Panneau de score (à gauche) - Modifié pour un meilleur positionnement
-        JPanel scorePanel = createScorePanel();
-        add(scorePanel, BorderLayout.WEST);
-
-        // Plateau au centre
-        plateauPanel = new PlateauPanel();
-        JPanel centerPanel = new JPanel(new GridBagLayout());
-        centerPanel.setBackground(BACKGROUND_COLOR);
-        centerPanel.add(plateauPanel);
-
-        // Historique à droite
-        JPanel historiquePanel = createHistoriquePanel();
-        add(historiquePanel, BorderLayout.EAST);
-
-        // Panneau d'informations (en bas)
-        JPanel infoPanel = createInfoPanel();
-        add(centerPanel, BorderLayout.CENTER);
-        add(infoPanel, BorderLayout.SOUTH);
-
-        setSize(900, 650);
-        setLocationRelativeTo(null);
-        setVisible(true);
-
+        initUI();
         mettreAJourInterface();
     }
     
-    private JPanel createScorePanel() {
-        JPanel scorePanel = new JPanel(new BorderLayout());
-        scorePanel.setBackground(PANEL_COLOR);
-        scorePanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY),
-            BorderFactory.createEmptyBorder(20, 15, 10, 15)
-        ));
+    private void initUI() {
+        setTitle("Master Checkers - Jeu");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setMinimumSize(new Dimension(1200, 800));
+        setLocationRelativeTo(null);
+        setResizable(true);
+        
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        // Titre du panneau de score
-        JLabel scoreTitleLabel = new JLabel("SCORE", SwingConstants.CENTER);
-        scoreTitleLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        scoreTitleLabel.setForeground(ACCENT_COLOR);
-        scorePanel.add(scoreTitleLabel, BorderLayout.NORTH);
+        // Panneau principal avec fond bois (même style qu'AccueilGUI)
+        String bgUrl = "https://i.pinimg.com/736x/61/38/22/6138225ae47e1549bcb77b075efe0f63.jpg";
+        mainPanel = new BackgroundPanel(bgUrl, DARK_WOOD);
+        mainPanel.setLayout(new BorderLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Header avec titre et boutons
+        JPanel headerPanel = createHeaderPanel();
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+
+        // Panneau central avec le plateau
+        JPanel centerPanel = createCenterPanel();
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
+
+        // Panneau inférieur avec status et boutons
+        JPanel bottomPanel = createBottomPanel();
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+
+        setContentPane(mainPanel);
+    }
+
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
         
-        // Score au centre
-        scoreLabel = new JLabel("Blancs: 12 | Noirs: 12", SwingConstants.CENTER);
-        scoreLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        scoreLabel.setForeground(TEXT_COLOR);
-        JPanel scoreWrapper = new JPanel();
-        scoreWrapper.setBackground(PANEL_COLOR);
-        scoreWrapper.add(scoreLabel);
-        scorePanel.add(scoreWrapper, BorderLayout.CENTER);
+        // Titre Master Checkers (plus petit que sur la page d'accueil)
+        JLabel titleLabel = createGoldLabel("MASTER CHECKERS", 32);
+        headerPanel.add(titleLabel, BorderLayout.CENTER);
         
-        // Bouton règles en bas du panneau score
-        btnRegles = new JButton("Règles du jeu");
-        btnRegles.setFont(new Font("Arial", Font.PLAIN, 12));
-        btnRegles.setBackground(PANEL_COLOR);
-        btnRegles.setForeground(ACCENT_COLOR);
-        btnRegles.setFocusPainted(false);
-        btnRegles.setBorderPainted(false);
-        btnRegles.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnRegles.addActionListener(e -> afficherRegles());
+        // Bouton retour dans le coin gauche avec image locale
+        btnRetourAccueil = createImageIconButton("Java-Checkers\\image.png", "Accueil");
+        btnRetourAccueil.addActionListener(e -> retourAccueil());
+        headerPanel.add(btnRetourAccueil, BorderLayout.WEST);
         
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        buttonPanel.setBackground(PANEL_COLOR);
-        buttonPanel.add(btnRegles);
-        scorePanel.add(buttonPanel, BorderLayout.SOUTH);
+        // Score dans le coin droit
+        scoreLabel = createGoldLabel("Blancs: 12 | Noirs: 12", 16);
+        headerPanel.add(scoreLabel, BorderLayout.EAST);
         
-        return scorePanel;
+        return headerPanel;
+    }
+    
+    private JPanel createCenterPanel() {
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setOpaque(false);
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        
+        // Panneau avec le plateau centré
+        JPanel plateauContainer = new JPanel(new GridBagLayout());
+        plateauContainer.setOpaque(false);
+        
+        plateauPanel = new PlateauPanel();
+        // Ajouter une bordure dorée avec effet 3D
+        plateauPanel.setBorder(new GoldBorder());
+        plateauContainer.add(plateauPanel);
+        
+        centerPanel.add(plateauContainer, BorderLayout.CENTER);
+        
+        // Panneau historique à droite
+        JPanel historiquePanel = createHistoriquePanel();
+        centerPanel.add(historiquePanel, BorderLayout.EAST);
+        
+        return centerPanel;
     }
     
     private JPanel createHistoriquePanel() {
-        historiqueTextArea = new JTextArea(20, 20);
+        JPanel historiqueContainer = new JPanel(new BorderLayout());
+        historiqueContainer.setOpaque(false);
+        historiqueContainer.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
+        historiqueContainer.setPreferredSize(new Dimension(250, 0));
+        
+        // Titre avec style doré
+        JLabel historiqueTitle = createGoldLabel("HISTORIQUE", 18);
+        historiqueTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        historiqueContainer.add(historiqueTitle, BorderLayout.NORTH);
+        
+        // Zone de texte avec fond simple et propre
+        historiqueTextArea = new JTextArea(15, 20);
         historiqueTextArea.setEditable(false);
+        historiqueTextArea.setLineWrap(true);
+        historiqueTextArea.setWrapStyleWord(true);
         historiqueTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        historiqueTextArea.setBackground(PANEL_COLOR);
-        historiqueTextArea.setForeground(TEXT_COLOR);
-        JScrollPane historiquePane = new JScrollPane(historiqueTextArea);
-        historiquePane.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 1, 0, 0, Color.LIGHT_GRAY),
-            BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
+        historiqueTextArea.setBackground(new Color(245, 245, 220)); // Beige clair
+        historiqueTextArea.setForeground(new Color(101, 67, 33)); // Marron foncé
+        historiqueTextArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        JPanel historiquePanel = new JPanel(new BorderLayout());
-        JLabel historiqueTitle = new JLabel("HISTORIQUE DES COUPS", SwingConstants.CENTER);
-        historiqueTitle.setFont(new Font("Arial", Font.BOLD, 14));
-        historiqueTitle.setForeground(ACCENT_COLOR);
-        historiqueTitle.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        JScrollPane scrollPane = new JScrollPane(historiqueTextArea);
+        scrollPane.setBorder(new GoldBorder());
+        scrollPane.setBackground(new Color(245, 245, 220));
+        scrollPane.getViewport().setBackground(new Color(245, 245, 220));
+        scrollPane.getViewport().setOpaque(true);
         
-        historiquePanel.add(historiqueTitle, BorderLayout.NORTH);
-        historiquePanel.add(historiquePane, BorderLayout.CENTER);
+        historiqueContainer.add(scrollPane, BorderLayout.CENTER);
         
-        return historiquePanel;
+        return historiqueContainer;
     }
-    
-    private JPanel createInfoPanel() {
-        JPanel infoPanel = new JPanel();
-        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-        infoPanel.setBackground(PANEL_COLOR);
-        infoPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY),
-            BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
 
-        statusLabel = new JLabel("Tour des Blancs", SwingConstants.CENTER);
-        statusLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        statusLabel.setForeground(ACCENT_COLOR);
-        statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        infoPanel.add(Box.createVerticalStrut(5));
-        infoPanel.add(statusLabel);
-
-        // Panneau pour les boutons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        buttonPanel.setBackground(PANEL_COLOR);
+    private JPanel createBottomPanel() {
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
+        bottomPanel.setOpaque(false);
+        bottomPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
         
-        btnRefaire = createStyledButton("Nouvelle partie");
+        // Status avec style doré
+        statusLabel = createGoldLabel("Tour des Blancs", 24);
+        statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        bottomPanel.add(statusLabel);
+        
+        bottomPanel.add(Box.createVerticalStrut(15));
+        
+        // Panneau pour les boutons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        buttonPanel.setOpaque(false);
+        
+        btnRegles = createGoldButton("RÈGLES");
+        btnRegles.setPreferredSize(new Dimension(120, 50));
+        btnRegles.addActionListener(e -> afficherRegles());
+        
+        btnRefaire = createGoldButton("NOUVELLE PARTIE");
+        btnRefaire.setPreferredSize(new Dimension(180, 50));
         btnRefaire.setVisible(false);
         btnRefaire.addActionListener(e -> nouvellePartie());
         
-        // btnAnnuler = createStyledButton("Annuler coup");
-        // btnAnnuler.setEnabled(false);  // Désactivé par défaut
-        // btnAnnuler.addActionListener(e -> annulerDernierCoup());
-        
-        // buttonPanel.add(btnAnnuler);
+        buttonPanel.add(btnRegles);
         buttonPanel.add(btnRefaire);
         
-        infoPanel.add(Box.createVerticalStrut(10));
-        infoPanel.add(buttonPanel);
-        infoPanel.add(Box.createVerticalStrut(5));
+        bottomPanel.add(buttonPanel);
         
-        return infoPanel;
+        return bottomPanel;
     }
     
-    private JButton createStyledButton(String text) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 12));
-        button.setBackground(ACCENT_COLOR);
-        button.setForeground(Color.WHITE);
+    // Création d'un petit bouton avec icône depuis fichier local
+    private JButton createImageIconButton(String iconPath, String tooltip) {
+        JButton button = new JButton();
+        button.setPreferredSize(new Dimension(50, 50));
         button.setFocusPainted(false);
         button.setBorderPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setToolTipText(tooltip);
+        
+        try {
+            File imageFile = new File(iconPath);
+            if (imageFile.exists()) {
+                BufferedImage originalImage = ImageIO.read(imageFile);
+                Image scaledImage = originalImage.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+                ImageIcon icon = new ImageIcon(scaledImage);
+                button.setIcon(icon);
+                
+                button.setBackground(new Color(101, 67, 33));
+                button.setContentAreaFilled(true);
+                button.setOpaque(true);
+                
+                button.addMouseListener(new java.awt.event.MouseAdapter() {
+                    public void mouseEntered(java.awt.event.MouseEvent evt) {
+                        button.setBackground(new Color(160, 82, 45));
+                    }
+
+                    public void mouseExited(java.awt.event.MouseEvent evt) {
+                        button.setBackground(new Color(139, 69, 19));
+                    }
+                });
+            } else {
+                button.setText("🏠");
+                button.setBackground(DARK_GOLD);
+                button.setForeground(Color.WHITE);
+                button.setFont(new Font("Arial", Font.BOLD, 16));
+                System.out.println("Fichier image non trouvé : " + iconPath);
+            }
+        } catch (IOException e) {
+            button.setText("🏠");
+            button.setBackground(DARK_GOLD);
+            button.setForeground(Color.WHITE);
+            button.setFont(new Font("Arial", Font.BOLD, 16));
+            System.out.println("Erreur lors du chargement de l'image : " + e.getMessage());
+        }
+        
         return button;
     }
     
+    private void retourAccueil() {
+        try {
+            Class.forName("AccueilGUI");
+            JFrame accueilGUI = (JFrame) Class.forName("AccueilGUI").getDeclaredConstructor().newInstance();
+            accueilGUI.setVisible(true);
+            this.dispose();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, 
+                "Impossible de retourner à l'accueil: " + ex.getMessage(), 
+                "Erreur", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
     private void afficherRegles() {
-        JDialog reglesDialog = new JDialog(this, "Règles du Jeu de Dames", true);
+        JDialog reglesDialog = new JDialog(this, "Règles du Master Checkers", true);
         reglesDialog.setLayout(new BorderLayout());
+        
+        BackgroundPanel dialogPanel = new BackgroundPanel(
+            "https://i.pinimg.com/736x/61/38/22/6138225ae47e1549bcb77b075efe0f63.jpg", 
+            DARK_WOOD
+        );
+        dialogPanel.setLayout(new BorderLayout());
+        dialogPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
         JTextArea textArea = new JTextArea();
         textArea.setEditable(false);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         textArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        textArea.setBackground(new Color(0, 0, 0, 180));
+        textArea.setForeground(LIGHT_GOLD);
+        textArea.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         textArea.setText(
-            "RÈGLES DU JEU DE DAMES\n\n" +
+            "RÈGLES DU MASTER CHECKERS\n\n" +
             "Le jeu de dames se joue sur un plateau de 8x8 cases.\n\n" +
             "DÉPLACEMENT:\n" +
             "- Les pions se déplacent en diagonale d'une case vers l'avant.\n" +
@@ -200,15 +279,22 @@ public class DamesGUI extends JFrame {
         );
         
         JScrollPane scrollPane = new JScrollPane(textArea);
-        reglesDialog.add(scrollPane, BorderLayout.CENTER);
+        scrollPane.setBorder(new GoldBorder());
+        scrollPane.getViewport().setOpaque(false);
         
-        JButton okButton = new JButton("Fermer");
+        dialogPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        JButton okButton = createGoldButton("Fermer");
+        okButton.setPreferredSize(new Dimension(100, 40));
         okButton.addActionListener(e -> reglesDialog.dispose());
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(okButton);
-        reglesDialog.add(buttonPanel, BorderLayout.SOUTH);
         
-        reglesDialog.setSize(400, 400);
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(okButton);
+        dialogPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        reglesDialog.setContentPane(dialogPanel);
+        reglesDialog.setSize(500, 500);
         reglesDialog.setLocationRelativeTo(this);
         reglesDialog.setVisible(true);
     }
@@ -218,18 +304,8 @@ public class DamesGUI extends JFrame {
         positionSelectionnee = null;
         historiqueTextArea.setText("");
         btnRefaire.setVisible(false);
-        // btnAnnuler.setEnabled(false);
         mettreAJourInterface();
     }
-    
-    // private void annulerDernierCoup() {
-    //     // Placeholder pour la fonctionnalité d'annulation
-    //     // À implémenter selon la structure de votre classe Jeu
-    //     JOptionPane.showMessageDialog(this, 
-    //         "Fonctionnalité à implémenter", 
-    //         "Annuler coup", 
-    //         JOptionPane.INFORMATION_MESSAGE);
-    // }
 
     private void mettreAJourInterface() {
         int[] compteur = jeu.getPlateau().compterPieces();
@@ -237,20 +313,20 @@ public class DamesGUI extends JFrame {
 
         if (jeu.estPartieTerminee()) {
             if (compteur[0] == 0) {
-                statusLabel.setText("Les Noirs ont gagné !");
+                statusLabel.setText("LES NOIRS ONT GAGNÉ !");
             } else if (compteur[1] == 0) {
-                statusLabel.setText("Les Blancs ont gagné !");
+                statusLabel.setText("LES BLANCS ONT GAGNÉ !");
             } else if (jeu.getPlateau().getMouvementsPossibles(true).isEmpty()) {
-                statusLabel.setText("Les Noirs ont gagné ! (Blancs bloqués)");
+                statusLabel.setText("LES NOIRS ONT GAGNÉ ! (Blancs bloqués)");
             } else {
-                statusLabel.setText("Les Blancs ont gagné ! (Noirs bloqués)");
+                statusLabel.setText("LES BLANCS ONT GAGNÉ ! (Noirs bloqués)");
             }
             btnRefaire.setVisible(true);
         } else if (jeu.estPrisesEnChaineEnCours()) {
-            statusLabel.setText((jeu.estTourBlanc() ? "Blancs" : "Noirs") + " : continuez la prise en chaîne");
+            statusLabel.setText((jeu.estTourBlanc() ? "BLANCS" : "NOIRS") + " : Continuez la prise en chaîne");
             btnRefaire.setVisible(false);
         } else {
-            statusLabel.setText("Tour des " + (jeu.estTourBlanc() ? "Blancs" : "Noirs"));
+            statusLabel.setText("Tour des " + (jeu.estTourBlanc() ? "BLANCS" : "NOIRS"));
             btnRefaire.setVisible(false);
         }
 
@@ -258,17 +334,14 @@ public class DamesGUI extends JFrame {
     }
 
     private class PlateauPanel extends JPanel {
-        private static final int TAILLE_CASE = 50;
+        private static final int TAILLE_CASE = 60;
+        private static final Color CASE_CLAIRE = new Color(255, 248, 220);
+        private static final Color CASE_FONCEE = new Color(210, 180, 140);
+        private static final Color PIECE_BLANCHE = LIGHT_GOLD;
+        private static final Color PIECE_NOIRE = new Color(101, 67, 33);
+        private static final Color SELECTION = new Color(255, 215, 0, 200);
+        private static final Color COUP_POSSIBLE = new Color(50, 205, 50, 150);
         
-        // Nouvelles couleurs pour le plateau
-        private static final Color CASE_CLAIRE = new Color(240, 217, 181);  // Beige clair
-        private static final Color CASE_FONCEE = new Color(181, 136, 99);   // Marron foncé
-        private static final Color PIECE_BLANCHE = new Color(255, 255, 240); // Blanc cassé
-        private static final Color PIECE_NOIRE = new Color(40, 40, 40);     // Noir profond
-        private static final Color SELECTION = new Color(255, 255, 0, 150); // Jaune semi-transparent
-        private static final Color COUP_POSSIBLE = new Color(50, 205, 50, 150); // Vert semi-transparent
-        
-        // Images pour le plateau et les pièces
         private BufferedImage imageComplete;
         private BufferedImage caseBlanc;
         private BufferedImage caseNoir;
@@ -280,10 +353,8 @@ public class DamesGUI extends JFrame {
 
         public PlateauPanel() {
             setPreferredSize(new Dimension(8 * TAILLE_CASE, 8 * TAILLE_CASE));
-            setBackground(BACKGROUND_COLOR);
-            setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
+            setOpaque(false);
 
-            // Charger l'image
             chargerImages();
 
             addMouseListener(new MouseAdapter() {
@@ -298,34 +369,27 @@ public class DamesGUI extends JFrame {
             try {
                 File fichierImage = new File("Dames_image.png");
                 if (fichierImage.exists()) {
-                    // Charger l'image complète
                     imageComplete = ImageIO.read(fichierImage);
                     
-                    // Vérifier que l'image est assez grande pour contenir tous les sprites
                     if (imageComplete.getWidth() < 100 || imageComplete.getHeight() < 150) {
                         throw new IOException("Dimensions de l'image inadéquates");
                     }
                     
-                    // Extraire les sprites individuels
                     decouperImages();
                     useImages = true;
                 } else {
-                    // Mode silencieux - pas de message d'erreur
                     useImages = false;
                 }
             } catch (Exception e) {
-                // Mode silencieux - pas de stack trace
                 useImages = false;
             }
         }
         
         private void decouperImages() {
             try {
-                // Pour rendre la découpe plus robuste, prendre la moitié de la largeur et le tiers de la hauteur
                 int largeurSprite = imageComplete.getWidth() / 2;
                 int hauteurSprite = imageComplete.getHeight() / 3;
                 
-                // Extraire chaque sprite
                 caseBlanc = imageComplete.getSubimage(0, 0, largeurSprite, hauteurSprite);
                 caseNoir = imageComplete.getSubimage(largeurSprite, 0, largeurSprite, hauteurSprite);
                 pionBlanc = imageComplete.getSubimage(0, hauteurSprite, largeurSprite, hauteurSprite);
@@ -350,15 +414,21 @@ public class DamesGUI extends JFrame {
                 if (positionSelectionnee == null) {
                     if (piece != null && !piece.estVide() &&
                             ((jeu.estTourBlanc() && piece.estBlanc()) || (!jeu.estTourBlanc() && piece.estNoir()))) {
+                        
+                        List<Mouvement> mouvementsPossibles;
                         if (jeu.estPrisesEnChaineEnCours()) {
                             if (pos.equals(jeu.getPositionDernierePrise())) {
                                 positionSelectionnee = pos;
-                                repaint();
                             }
                         } else {
-                            positionSelectionnee = pos;
-                            repaint();
+                            mouvementsPossibles = jeu.getPlateau().getMouvementsPossibles(jeu.estTourBlanc());
+                            mouvementsPossibles.removeIf(m -> !m.getDebut().equals(pos));
+                            
+                            if (!mouvementsPossibles.isEmpty()) {
+                                positionSelectionnee = pos;
+                            }
                         }
+                        repaint();
                     }
                 } else {
                     if (!positionSelectionnee.equals(pos)) {
@@ -368,8 +438,6 @@ public class DamesGUI extends JFrame {
                             ajouterHistorique(m);
                             positionSelectionnee = null;
                             mettreAJourInterface();
-                            // Activer le bouton d'annulation après un coup
-                            // btnAnnuler.setEnabled(true);
                         }
                     } else {
                         positionSelectionnee = null;
@@ -384,7 +452,6 @@ public class DamesGUI extends JFrame {
                     m.getDebut().toString() + " -> " + m.getFin().toString();
             String time = new SimpleDateFormat("HH:mm:ss").format(new Date());
             historiqueTextArea.append("[" + time + "] " + coup + "\n");
-            // Auto-scroll vers le bas
             historiqueTextArea.setCaretPosition(historiqueTextArea.getDocument().getLength());
         }
 
@@ -394,28 +461,35 @@ public class DamesGUI extends JFrame {
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+            GradientPaint plateauGradient = new GradientPaint(
+                0, 0, LIGHT_GOLD,
+                getWidth(), getHeight(), DARK_GOLD
+            );
+            g2.setPaint(plateauGradient);
+            g2.fillRect(0, 0, getWidth(), getHeight());
+
             for (int i = 0; i < 8; i++) {
                 for (int j = 0; j < 8; j++) {
                     int x = j * TAILLE_CASE;
                     int y = i * TAILLE_CASE;
                     
                     if (useImages) {
-                        // Utiliser l'image appropriée pour chaque case
                         g2.drawImage(
                             (i + j) % 2 == 0 ? caseBlanc : caseNoir,
                             x, y, TAILLE_CASE, TAILLE_CASE, null
                         );
                     } else {
-                        // Utiliser les nouvelles couleurs pour un meilleur contraste
                         g2.setColor((i + j) % 2 == 0 ? CASE_CLAIRE : CASE_FONCEE);
                         g2.fillRect(x, y, TAILLE_CASE, TAILLE_CASE);
+                        
+                        g2.setColor(DARK_GOLD);
+                        g2.setStroke(new BasicStroke(1));
+                        g2.drawRect(x, y, TAILLE_CASE, TAILLE_CASE);
                     }
 
-                    // Dessiner les pièces
                     Piece piece = jeu.getPlateau().getPiece(new Position(i, j));
                     if (piece != null && !piece.estVide()) {
                         if (useImages) {
-                            // Sélectionner la bonne image selon le type de pièce
                             BufferedImage pieceImage;
                             if (piece.estDame()) {
                                 pieceImage = piece.estBlanc() ? dameBlanc : dameNoir;
@@ -424,29 +498,34 @@ public class DamesGUI extends JFrame {
                             }
                             g2.drawImage(pieceImage, x, y, TAILLE_CASE, TAILLE_CASE, null);
                         } else {
-                            // Utiliser les nouvelles couleurs pour un meilleur contraste
-                            g2.setColor(piece.estBlanc() ? PIECE_BLANCHE : PIECE_NOIRE);
-                            int d = (int)(TAILLE_CASE * 0.8);
+                            int d = (int)(TAILLE_CASE * 0.75);
                             int px = x + (TAILLE_CASE - d) / 2;
                             int py = y + (TAILLE_CASE - d) / 2;
+                            
+                            g2.setColor(new Color(0, 0, 0, 100));
+                            g2.fillOval(px + 2, py + 2, d, d);
+                            
+                            g2.setColor(piece.estBlanc() ? PIECE_BLANCHE : PIECE_NOIRE);
                             g2.fillOval(px, py, d, d);
                             
-                            // Ajouter un contour pour améliorer la visibilité
-                            g2.setColor(piece.estBlanc() ? Color.DARK_GRAY : Color.LIGHT_GRAY);
+                            g2.setColor(piece.estBlanc() ? DARK_GOLD : Color.BLACK);
                             g2.setStroke(new BasicStroke(2));
                             g2.drawOval(px, py, d, d);
+                            
+                            g2.setColor(new Color(255, 255, 255, 80));
+                            g2.fillOval(px + d/4, py + d/4, d/3, d/3);
 
                             if (piece.estDame()) {
-                                g2.setColor(piece.estBlanc() ? Color.BLACK : Color.WHITE);
-                                g2.setFont(new Font("Arial", Font.BOLD, 20));
-                                g2.drawString("D", px + d / 2 - 6, py + d / 2 + 6);
+                                g2.setColor(piece.estBlanc() ? DARK_GOLD : LIGHT_GOLD);
+                                g2.setFont(new Font("Arial", Font.BOLD, 16));
+                                g2.drawString("D", px + d/2 - 8, py + d/2 + 6);
                             }
                         }
                     }
                 }
             }
 
-            // Affichage des sélections et mouvements possibles avec de nouvelles couleurs
+            // Affichage des sélections et mouvements possibles
             if (positionSelectionnee != null) {
                 int x = positionSelectionnee.getColonne() * TAILLE_CASE;
                 int y = positionSelectionnee.getLigne() * TAILLE_CASE;
@@ -468,27 +547,200 @@ public class DamesGUI extends JFrame {
                     int yf = fin.getLigne() * TAILLE_CASE;
                     g2.setColor(COUP_POSSIBLE);
                     g2.fillRect(xf, yf, TAILLE_CASE, TAILLE_CASE);
+                    
+                    g2.setColor(Color.GREEN.darker());
+                    g2.setStroke(new BasicStroke(2));
+                    g2.drawRect(xf, yf, TAILLE_CASE, TAILLE_CASE);
                 }
             }
             
             // Ajout des coordonnées du plateau
-            g2.setFont(new Font("Arial", Font.BOLD, 10));
+            g2.setFont(new Font("Arial", Font.BOLD, 12));
             for (int i = 0; i < 8; i++) {
                 g2.setColor(i % 2 == 0 ? CASE_FONCEE : CASE_CLAIRE);
-                g2.drawString(String.valueOf((char)('A' + i)), i * TAILLE_CASE + 5, 8 * TAILLE_CASE - 5);
-                g2.drawString(String.valueOf(8 - i), 5, i * TAILLE_CASE + 15);
+                g2.drawString(String.valueOf((char)('A' + i)), 
+                             i * TAILLE_CASE + TAILLE_CASE/2 - 5, 
+                             8 * TAILLE_CASE - 5);
+                
+                g2.drawString(String.valueOf(8 - i), 
+                             5, 
+                             i * TAILLE_CASE + TAILLE_CASE/2 + 5);
             }
         }
     }
 
-    public static void main(String[] args) {
-        // Définir un look and feel moderne
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            // Ignorer les erreurs de Look & Feel
+    // Classe pour gérer le fond avec image
+    private class BackgroundPanel extends JPanel {
+        private Image backgroundImage;
+        private Color backgroundColor;
+        
+        public BackgroundPanel(String imageUrl, Color fallbackColor) {
+            try {
+                ImageIcon icon = new ImageIcon(new URL(imageUrl));
+                if (icon.getImageLoadStatus() == MediaTracker.COMPLETE) {
+                    backgroundImage = icon.getImage();
+                } else {
+                    throw new IOException("Chargement d'image incomplet");
+                }
+            } catch (Exception e) {
+                try {
+                    InputStream is = getClass().getResourceAsStream(imageUrl);
+                    if (is != null) {
+                        backgroundImage = ImageIO.read(is);
+                    }
+                } catch (Exception ex) {
+                    backgroundImage = null;
+                }
+            }
+            this.backgroundColor = fallbackColor;
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (backgroundImage != null) {
+                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            } else {
+                g.setColor(backgroundColor);
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+        }
+    }
+    
+    // Bordure dorée avec effet 3D
+    private class GoldBorder implements Border {
+        @Override
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            g2d.setColor(new Color(0, 0, 0, 100));
+            g2d.setStroke(new BasicStroke(6));
+            g2d.drawRect(x + 3, y + 3, width - 6, height - 6);
+            
+            g2d.setColor(DARK_GOLD);
+            g2d.setStroke(new BasicStroke(4));
+            g2d.drawRect(x, y, width - 1, height - 1);
+            
+            g2d.setColor(LIGHT_GOLD);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawRect(x + 2, y + 2, width - 5, height - 5);
+            
+            g2d.dispose();
         }
         
-        SwingUtilities.invokeLater(DamesGUI::new);
+        @Override
+        public Insets getBorderInsets(Component c) {
+            return new Insets(8, 8, 8, 8);
+        }
+        
+        @Override
+        public boolean isBorderOpaque() {
+            return false;
+        }
     }
-}
+    
+    // Création d'un label avec effet doré
+    private JLabel createGoldLabel(String text, int fontSize) {
+        JLabel label = new JLabel(text, SwingConstants.CENTER) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                
+                GradientPaint gp = new GradientPaint(
+                    0, 0, LIGHT_GOLD,
+                    0, getHeight(), DARK_GOLD
+                );
+                g2d.setPaint(gp);
+                
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth(getText());
+                int textHeight = fm.getHeight();
+                int x = (getWidth() - textWidth) / 2;
+                int y = ((getHeight() - textHeight) / 2) + fm.getAscent();
+                
+                g2d.drawString(getText(), x, y);
+                
+                float alpha = 0.4f;
+                for (int i = 1; i < 4; i++) {
+                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+                    g2d.drawString(getText(), x - i, y - i);
+                    alpha -= 0.1f;
+                }
+                
+                g2d.dispose();
+            }
+        };
+        
+        label.setForeground(GOLD_COLOR);
+        label.setFont(new Font("Arial", Font.BOLD, fontSize));
+        return label;
+    }
+    
+    // Création d'un bouton doré
+    private JButton createGoldButton(String text) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                RoundRectangle2D roundedRectangle = new RoundRectangle2D.Float(
+                    0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                
+                GradientPaint gp = new GradientPaint(
+                    0, 0, LIGHT_GOLD,
+                    0, getHeight(), DARK_GOLD
+                );
+                g2d.setPaint(gp);
+                g2d.fill(roundedRectangle);
+                
+                g2d.setColor(DARK_GOLD.darker());
+                g2d.draw(roundedRectangle);
+                
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth(getText());
+                int textHeight = fm.getHeight();
+                int x = (getWidth() - textWidth) / 2;
+                int y = ((getHeight() - textHeight) / 2) + fm.getAscent();
+                
+                g2d.setColor(new Color(0, 0, 0, 80));
+                g2d.drawString(getText(), x + 1, y + 1);
+                
+                g2d.setColor(Color.BLACK);
+                g2d.drawString(getText(), x, y);
+                
+                if (!getModel().isPressed()) {
+                    g2d.setColor(new Color(255, 255, 255, 100));
+                    g2d.drawLine(5, 5, getWidth() - 5, 5);
+                    g2d.drawLine(5, 5, 5, getHeight() - 5);
+                }
+                
+                g2d.dispose();
+            }
+        };
+        
+        button.setFont(new Font("Arial", Font.BOLD, 16));
+        button.setForeground(Color.BLACK);
+        button.setBackground(GOLD_COLOR);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
+        return button;
+    }
+
+    public static void main(String[] args) {
+        System.setProperty("awt.useSystemAAFontSettings", "on");
+        System.setProperty("swing.aatext", "true");
+        
+        EventQueue.invokeLater(() -> {
+            DamesGUI damesGUI = new DamesGUI();
+            damesGUI.setVisible(true);
+        });
+    }
+} 
